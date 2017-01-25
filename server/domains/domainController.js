@@ -38,6 +38,8 @@ let insertUrls = function(dataToInsert) {
     }
   }
 }
+
+
 let fetchDomainCardDetails = function(domain) {
   logger.debug("Received request for retriving domain details ", domain);
   //Save to Mongo DB
@@ -223,7 +225,33 @@ let publishNewDomain = function(newDomainObj) {
   return promise;
 }
 
-
+let publishNewIntent = function(domainObj) {
+   logger.debug("Received request for publishing new intent to the domain: "+domainObj.domain);
+   let promise = new Promise(function(resolve, reject) {
+       logger.debug(domainObj.intent);
+       if (!domainObj.intent ||
+           domainObj.intent.length <= INTENT_NAME_MIN_LENGTH) {
+           reject({
+               error: 'Invalid intent name..!'
+           });
+       }
+       async.waterfall([function(callback) {
+                   domainMongoController.checkDomainCallback(domainObj.domain,
+                       callback);
+               },
+               function(checkedDomain, callback) {
+                   intentNeo4jController.getPublishIntentCallback(domainObj, callback);
+               }
+           ],
+           function(err, intentName) {
+               if (err) {
+                   reject(err);
+               }
+               resolve(intentName);
+           }); //end of async.waterfall
+   });
+   return promise;
+}
 
 let getDomain = function(domainName) {
   logger.debug("Received request for retriving Concept(s) in domain: ",
@@ -511,5 +539,6 @@ module.exports = {
   freshlyIndexDomain: freshlyIndexDomain,
   fetchWebDocuments: fetchWebDocuments,
   getAllDomain: getAllDomain,
+  publishNewIntent: publishNewIntent,
   getTermsIntents: getTermsIntents
 }
