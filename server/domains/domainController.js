@@ -41,6 +41,24 @@ let insertUrls = function(dataToInsert) {
 }
 
 
+let deleteRelation = function(deleteObj) {
+    logger.debug("Received request for deleting the relationship between " + deleteObj.subject + " and " + deleteObj.object);
+    let promise = new Promise(function(resolve, reject) {
+        async.waterfall([function(callback) {
+                domainNeo4jController.getDeleteRelationCallback(deleteObj, callback);
+            }],
+            function(err, result) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(result);
+            }); //end of async.waterfall
+    });
+    return promise;
+}
+
+
+
 let fetchDomainCardDetails = function(domain) {
   logger.debug("Received request for retriving domain details ", domain);
   //Save to Mongo DB
@@ -530,30 +548,6 @@ let getAllDomain = function() {
   return promise;
 }
 
-let publishNewSubConcept = function(conceptObj) {
-    logger.debug("Received request for publishing new subConcept to the concept: " + conceptObj.subject);
-    let promise = new Promise(function(resolve, reject) {
-        logger.debug(conceptObj.intent);
-        if (!conceptObj.subject || !conceptObj.object) {
-            reject({
-                error: 'Invalid concept or subConcept name..!'
-            });
-        }
-        async.waterfall([
-                function(callback) {
-                    conceptNeo4jController.getPublishSubConceptCallback(conceptObj, callback);
-                }
-            ],
-            function(err, objectName) {
-                if (err) {
-                    reject(err);
-                }
-                resolve(objectName);
-            }); //end of async.waterfall
-    });
-    return promise;
-}
-
 
 module.exports = {
   publishNewDomain: publishNewDomain,
@@ -566,5 +560,6 @@ module.exports = {
   getAllDomain: getAllDomain,
   publishNewIntent: publishNewIntent,
   getTermsIntents: getTermsIntents,
-  publishNewSubConcept: publishNewSubConcept
+  deleteRelation: deleteRelation
+}
 }
