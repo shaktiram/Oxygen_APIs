@@ -326,29 +326,32 @@ router.post('/add/subConcept', function(req, res) {
         return;
     }
 });
-let publishNewIntent = function(domainObj) {
-  logger.debug("Received request for publishing new intent to the domain: "+domainObj.subject);
-  let promise = new Promise(function(resolve, reject) {
-      logger.debug(domainObj.intent);
-      if (!domainObj.subject || !domainObj.object) {
-          reject({
-              error: 'Invalid concept or intent name..!'
-          });
-      }
-      async.waterfall([
-              function(callback) {
-                  intentNeo4jController.getPublishSubConceptCallback(domainObj, callback);
-              }
-          ],
-          function(err, objectName) {
-              if (err) {
-                  reject(err);
-              }
-              resolve(objectName);
-          }); //end of async.waterfall
-  });
-  return promise;
-}
+
+router.post('/add/intent', function(req, res) {
+   let domainObj = req.body;
+   logger.debug("Got request to add a new intent to a domain", req.body);
+   logger.debug("Domain name :" + domainObj.domain);
+
+   try {
+       domainCtrl.publishNewIntent(domainObj).then(function(intentName) {
+               logger.info("Successfully published a intent to the domain " + domainObj.domain);
+               res.send(intentName);
+               return;
+           },
+           function(err) {
+               logger.error(
+                   "Encountered error in publishing intent : ",
+                   err);
+               res.send(err);
+               return;
+           })
+   } catch (err) {
+       logger.error("Caught a error in publishing a new intent to the domain ", err);
+       res.status(500).send({
+           error: "Something went wrong, please try later..!"
+       });
+       return;
+   }
 });
 
 module.exports = router;
