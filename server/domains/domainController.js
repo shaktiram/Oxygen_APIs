@@ -66,6 +66,25 @@ let fetchDomainCardDetails = function(domain) {
 }
 
 
+//for deleting
+let deleteRelation = function(deleteObj) {
+    logger.debug("Received request for deleting the relationship between " + deleteObj.subject + " and " + deleteObj.object);
+    let promise = new Promise(function(resolve, reject) {
+        async.waterfall([function(callback) {
+                domainNeo4jController.getDeleteRelationCallback(deleteObj, callback);
+            }],
+            function(err, result) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(result);
+            }); //end of async.waterfall
+    });
+    return promise;
+}
+
+
+
 // This should be private and not exposed
 let indexPublishedDomain = function(domainName) {
     //process.nextTick(function() {
@@ -592,5 +611,6 @@ module.exports = {
     getAllDomain: getAllDomain,
     getTreeOfDomain: getTreeOfDomain,
     deleteDomain:deleteDomain,
-    publishNewTerm: publishNewTerm
+    publishNewTerm: publishNewTerm,
+  deleteRelation: deleteRelation
 }

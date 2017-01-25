@@ -144,6 +144,51 @@ router.get('/:domainName', function (req, res) {
 
 });
 
+router.post('/delete/relation', function(req, res) {
+
+    let deleteObj = req.body;
+
+    logger.info("Got request to delete a relationship :" +deleteObj.subject);
+
+
+
+    try {
+
+        domainCtrl.deleteRelation(deleteObj).then(function(result) {
+
+                logger.info("Successfully deleted the relationship...!!!");
+
+                return;
+
+            },
+
+            function(err) {
+
+                logger.error("Encountered error in deleting : ",err);
+
+                res.send(err);
+
+                return;
+
+            });
+
+    } catch (err){
+
+        logger.error("Caught an error in deleting ", err);
+
+        res.status(500).send({
+
+            error: "Something went wrong, please try later..!"
+
+        });
+
+        return;
+
+    }
+
+});
+
+
 // Freshly index a domain
 router.post('/:domainName/index', function (req, res) {
     logger.debug("going to freshly index domain ", req.params.domainName);
