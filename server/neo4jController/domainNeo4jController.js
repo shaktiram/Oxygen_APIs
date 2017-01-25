@@ -106,7 +106,7 @@ let getAllDomainConcept = function(domainNameColln) {
   return promise;
 }
 
-let getIntentsRelations = function(domainName){
+let getTermsIntents = function(domainName){
   let promise = new Promise(function(resolve, reject) {
     logger.debug(
       "Now proceeding to retrive the intents and relations for domain name: ",
@@ -118,10 +118,10 @@ let getIntentsRelations = function(domainName){
     );
     let session = driver.session();
     logger.debug("obtained connection with neo4j");
-    let query = 'MATCH (d:' + graphConsts.NODE_DOMAIN +
+    let query = 'MATCH (i:' + graphConsts.NODE_INTENT +
       '{name:{domainName}})'
-      query += 'match (i:Intent)-[r]->(d)'
-      query += 'return i.name as Intent,type(r) as Relation';
+      query += 'match (t:Term)-[r]->(i)'
+      query += 'return t.name as Term,type(r) as Relation';
     let params = {
       domainName: domainName
     };
@@ -153,7 +153,6 @@ let getIntentsRelations = function(domainName){
 
 
 let getDomainConcept = function(domainName) {
-
   let promise = new Promise(function(resolve, reject) {
 
     logger.debug(
@@ -162,9 +161,6 @@ let getDomainConcept = function(domainName) {
     let driver = neo4jDriver.driver(config.NEO4J.neo4jURL,
       neo4jDriver.auth.basic(config.NEO4J.usr, config.NEO4J.pwd), {
         encrypted: false
-
-
-
       }
       );
 
@@ -578,55 +574,6 @@ let getWebDocuments = function(domainObj) {
   return promise;
 }
 
-
-let getDeleteRelation = function(deleteObj) {
-    let subject = deleteObj.subject,
-        object = deleteObj.object,
-        subjectType = deleteObj.subject_type,
-        objectType = deleteObj.object_type,
-        relation = deleteObj.relation;
-
-    let promise = new Promise(function(resolve, reject) {
-        logger.info("Now proceeding to delete the relationship for the subject :",
-            deleteObj.subject
-        );
-        let driver = neo4jDriver.driver(config.NEO4J.neo4jURL,
-            neo4jDriver.auth.basic(config.NEO4J.usr, config.NEO4J.pwd), {
-                encrypted: false
-            }
-        );
-        let session = driver.session();
-        logger.debug("obtained connection with neo4j");
-
-        let query = '';
-        let params = {};
-        if (objectType.indexOf(graphConsts.NODE_DOMAIN) !== -1 && subjectType.indexOf(graphConsts.NODE_CONCEPT) !== -1) {
-            query += 'match(c:objectType{name:{object}})-[r:relation]->(d:subjectType{name:{subject}})'
-            query += 'detach delete(r)'
-
-            params = {
-                subject: subject,
-                object: object,
-                subjectType: subjectType,
-                objectType: objectType,
-                relation: relation
-            };
-        }
-
-        session.run(query, params).then(function(result) {
-                session.close();
-                resolve(true);
-            })
-            .catch(function(error) {
-                logger.error("Error in NODE_CONCEPT query: ", error, ' query is: ', query);
-                reject(error);
-            });
-    });
-    return promise;
-}
-
-
-
 let indexNewDomainCallBack = function(newDomainObj, callback) {
   indexNewDomain(newDomainObj).then(function(indexedDomainObj) {
     callback(null, indexedDomainObj);
@@ -655,8 +602,8 @@ let getDomainIntentCallback = function(domainName, callback) {
     callback(err, null);
   });
 }
-let getIntentsRelationsCallback = function(domainName, callback) {
-  getIntentsRelations(domainName).then(function(retrievedIntentsRelations) {
+let getTermsIntentsCallback = function(domainName, callback) {
+  getTermsIntents(domainName).then(function(retrievedIntentsRelations) {
     callback(null, retrievedIntentsRelations);
   }, function(err) {
     callback(err, null);
@@ -689,16 +636,6 @@ let getWebDocumentsCallback = function(domainObj, callback) {
   });
 }
 
-let getDeleteRelationCallback = function(deleteObj, callback) {
-    logger.debug("from the callback : " + deleteObj);
-    getDeleteRelation(deleteObj).then(function(result) {
-        callback(null, result);
-    }, function(err) {
-        callback(err, null);
-    });
-}
-
-
 module.exports = {
   indexNewDomain: indexNewDomain,
   getDomainConcept: getDomainConcept,
@@ -715,6 +652,5 @@ module.exports = {
   getWebDocumentsCallback: getWebDocumentsCallback,
   getWebDocuments: getWebDocuments,
   getIntentforDocument: getIntentforDocument,
-  getIntentsRelationsCallback: getIntentsRelationsCallback,
-  getDeleteRelationCallback: getDeleteRelationCallback
+  getTermsIntentsCallback: getTermsIntentsCallback
 }
