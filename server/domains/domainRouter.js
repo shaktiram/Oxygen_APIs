@@ -326,7 +326,7 @@ router.post('/add/subConcept', function(req, res) {
         return;
     }
 });
-let publishNewIntent = function(conceptObj) {
+let publishNewIntent = function(domainObj) {
   logger.debug("Received request for publishing new intent to the domain: "+domainObj.subject);
   let promise = new Promise(function(resolve, reject) {
       logger.debug(domainObj.intent);
