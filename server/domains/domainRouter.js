@@ -12,7 +12,6 @@ router.post('/:domainName', function(req, res) {
     let newDomainObj = req.body;
     logger.debug("in 8080 ",
       req.params.domainName);
-
     domainCtrl.publishNewDomain(newDomainObj)
       .then(function(savedDomainObj) {
           logger.debug("Successfully published new domain: ",
@@ -327,6 +326,29 @@ router.post('/add/subConcept', function(req, res) {
         return;
     }
 });
-
+let publishNewIntent = function(conceptObj) {
+  logger.debug("Received request for publishing new intent to the domain: "+domainObj.subject);
+  let promise = new Promise(function(resolve, reject) {
+      logger.debug(domainObj.intent);
+      if (!domainObj.subject || !domainObj.object) {
+          reject({
+              error: 'Invalid concept or intent name..!'
+          });
+      }
+      async.waterfall([
+              function(callback) {
+                  intentNeo4jController.getPublishSubConceptCallback(domainObj, callback);
+              }
+          ],
+          function(err, objectName) {
+              if (err) {
+                  reject(err);
+              }
+              resolve(objectName);
+          }); //end of async.waterfall
+  });
+  return promise;
+}
+});
 
 module.exports = router;
