@@ -1,6 +1,7 @@
 'use strict';
 const domainNeo4jController = require('./domainNeo4jController');
 const domainMongoController = require('./domainMongoController');
+const termNeo4jController = require('./termNeo4jController');
 const domainMgr = require('./domainManager');
 const startCrawlerMQ = require('./../searcher/docOpenCrawlerEngine').startCrawler;
 const startFnGen = require('./domainEngine').startDomainEngine;
@@ -555,6 +556,31 @@ let testFnGen = function(data){
     }
 }
 
+let publishNewTerm = function(intentObj) {
+   logger.debug("Received request for publishing new term to the intent: "+intentObj.intent);
+   let promise = new Promise(function(resolve, reject) {
+       logger.debug(intentObj.term);
+       if (!intentObj.term ||
+           intentObj.term.length <= INTENT_NAME_MIN_LENGTH) {
+           reject({
+               error: 'Invalid term name..!'
+           });
+       }
+       async.waterfall([
+               function(callback) {
+                   termNeo4jController.getPublishTermCallback(intentObj, callback);
+               }
+           ],
+           function(err, termName) {
+               if (err) {
+                   reject(err);
+               }
+               resolve(termName);
+           }); //end of async.waterfall
+   });
+   return promise;
+}
+
 module.exports = {
     publishNewDomain: publishNewDomain,
     getDomain: getDomain,
@@ -565,5 +591,6 @@ module.exports = {
     fetchWebDocuments: fetchWebDocuments,
     getAllDomain: getAllDomain,
     getTreeOfDomain: getTreeOfDomain,
-    deleteDomain:deleteDomain
+    deleteDomain:deleteDomain,
+    publishNewTerm: publishNewTerm
 }
