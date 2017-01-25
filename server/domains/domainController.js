@@ -8,6 +8,7 @@ const logger = require('./../../applogger');
 const async = require('async');
 
 const DOMAIN_NAME_MIN_LENGTH = 3;
+const INTENT_NAME_MIN_LENGTH = 3;
 
 let insertUrls = function(dataToInsert) {
   console.log(dataToInsert)
