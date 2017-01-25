@@ -273,4 +273,32 @@ router.post('/delete/relation', function(req, res) {
 
 });
 
+//Adding new term to a existing intent
+router.post('/newTerm', function(req, res) {
+    let intentObj = req.body;
+    logger.debug("Got request to add a new term to a intent", req.body);
+    logger.debug("Intent name :" + intentObj.intent);
+
+    try {
+        domainCtrl.publishNewTerm(intentObj).then(function(termName) {
+                logger.info("Successfully published a term to the intent " + intentObj.intent);
+                res.send(termName);
+                return;
+            },
+            function(err) {
+                logger.error(
+                    "Encountered error in publishing term : ",
+                    err);
+                res.send(err);
+                return;
+            })
+    } catch (err) {
+        logger.error("Caught a error in publishing a new term to the intent ", err);
+        res.status(500).send({
+            error: "Something went wrong, please try later..!"
+        });
+        return;
+    }
+});
+
 module.exports = router;
