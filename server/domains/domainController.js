@@ -530,6 +530,30 @@ let getAllDomain = function() {
   return promise;
 }
 
+let publishNewSubConcept = function(conceptObj) {
+    logger.debug("Received request for publishing new subConcept to the concept: " + conceptObj.subject);
+    let promise = new Promise(function(resolve, reject) {
+        logger.debug(conceptObj.intent);
+        if (!conceptObj.subject || !conceptObj.object) {
+            reject({
+                error: 'Invalid concept or subConcept name..!'
+            });
+        }
+        async.waterfall([
+                function(callback) {
+                    conceptNeo4jController.getPublishSubConceptCallback(conceptObj, callback);
+                }
+            ],
+            function(err, objectName) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(objectName);
+            }); //end of async.waterfall
+    });
+    return promise;
+}
+
 
 module.exports = {
   publishNewDomain: publishNewDomain,
@@ -541,5 +565,6 @@ module.exports = {
   fetchWebDocuments: fetchWebDocuments,
   getAllDomain: getAllDomain,
   publishNewIntent: publishNewIntent,
-  getTermsIntents: getTermsIntents
+  getTermsIntents: getTermsIntents,
+  publishNewSubConcept: publishNewSubConcept
 }
